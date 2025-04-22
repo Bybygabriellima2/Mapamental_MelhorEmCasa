@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa Mental - Programa Melhor em Casa</title>
+    <style>
+        * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-image: url('https://static.vecteezy.com/ti/vetor-gratis/p3/10226272-servicos-de-assistencia-a-idosos-desenho-desenhado-a-mao-desenho-plano-com-cuidador-enfermagem-casa-viver-e-apoio-design-vetor.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-x: hidden;
+}
+
+body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.3); /* ajuste a opacidade conforme necessário */
+    z-index: 0;
+    pointer-events: none;
+}
+
+.container {
+    width: 100%;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.mind-map {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.center-node {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, #60a5fa, #3b82f6);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.5);
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.5s ease;
+    user-select: none;
+}
+
+.center-node:hover {
+    transform: scale(1.05);
+    box-shadow: 0 15px 35px rgba(59, 130, 246, 0.7);
+}
+
+.node {
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 15px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.5s ease;
+    opacity: 0;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    z-index: 5;
+    user-select: none;
+}
+
+.node:hover {
+    transform: scale(1.1);
+    z-index: 6;
+}
+
+.node-content {
+    position: fixed;
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    width: 350px;
+    max-width: 90vw;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    display: none;
+    z-index: 100;
+    color: #333;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.4s ease;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+}
+
+.node-content.active {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.node-content h3 {
+    margin-bottom: 15px;
+    color: #3b82f6;
+    font-size: 1.3rem;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 8px;
+}
+
+.node-content p {
+    font-size: 15px;
+    line-height: 1.5;
+    margin-bottom: 15px;
+}
+
+.node-content ul {
+    padding-left: 20px;
+    margin-top: 10px;
+}
+
+.node-content li {
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #f3f4f6;
+    border: none;
+    font-size: 18px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+    background: #e5e7eb;
+    color: #1f2937;
+}
+
+.connection {
+    position: absolute;
+    height: 3px;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.5));
+    transform-origin: left center;
+    z-index: 1;
+    opacity: 0;
+    transition: all 0.5s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.controls {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    z-index: 200;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 12px 20px;
+    border-radius: 30px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5px);
+}
+
+.control-btn {
+    padding: 10px 18px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.control-btn:hover {
+    background: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.control-btn:active {
+    transform: translateY(0);
+}
+
+.particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 90;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.team-info {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: white;
+    padding: 20px 25px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    max-width: 90%;
+    z-index: 95;
+    display: none;
+    opacity: 0;
+    transition: all 0.4s ease;
+}
+
+.team-info.active {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.team-info h3 {
+    margin-bottom: 15px;
+    color: #3b82f6;
+    font-size: 1.3rem;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 8px;
+}
+
+.team-info ul {
+    list-style: none;
+    padding: 0;
+}
+
+.team-info li {
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: #4b5563;
+}
+
+.branding {
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+    font-size: 14px;
+    color: #64748b;
+    z-index: 50;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.instructions {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 12px 20px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    max-width: 90%;
+    z-index: 50;
+    font-size: 14px;
+    color: #4b5563;
+    backdrop-filter: blur(5px);
+    transition: opacity 0.5s ease;
+}
+
+@media (max-width: 768px) {
+    .center-node {
+        width: 150px;
+        height: 150px;
+        font-size: 14px;
+    }
+
+    .node {
+        width: 110px;
+        height: 110px;
+        font-size: 12px;
+    }
+
+    .controls {
+        flex-wrap: wrap;
+        justify-content: center;
+        width: 90%;
+        gap: 8px;
+        padding: 10px 15px;
+    }
+
+    .control-btn {
+        font-size: 12px;
+        padding: 8px 14px;
+    }
+
+    .node-content {
+        width: 300px;
+        padding: 15px;
+    }
+
+    .instructions {
+        padding: 10px 15px;
+        font-size: 12px;
+    }
+}
+
+/* Cores temáticas para os nós */
+.node-1 {
+    background: radial-gradient(circle, #10b981, #059669);
+}
+
+.node-2 {
+    background: radial-gradient(circle, #f59e0b, #d97706);
+}
+
+.node-3 {
+    background: radial-gradient(circle, #ec4899, #db2777);
+}
+
+.node-4 {
+    background: radial-gradient(circle, #8b5cf6, #7c3aed);
+}
+
+.node-5 {
+    background: radial-gradient(circle, #06b6d4, #0891b2);
+}
+
+/* Animação de pulso para os nós */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.pulse {
+    animation: pulse 3s infinite;
+}
+
+/* Efeito de brilho */
+.node::after, .center-node::after {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    border-radius: 50%;
+    background: inherit;
+    z-index: -1;
+    opacity: 0.3;
+    filter: blur(10px);
+}
+
+/* Efeito de destaque para o nó ativo */
+.node.active {
+    animation: pulse 1.5s infinite;
+    box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.5), 0 8px 25px rgba(0, 0, 0, 0.4);
+}
+
+/* Animação de partículas flutuantes */
+@keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(5deg); }
+}
+
+.particle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: float 10s ease-in-out infinite;
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="particles" id="particles"></div>
+        <div class="mind-map">
+            <div class="center-node pulse" id="center">Programa<br>Melhor<br>em Casa<br>para Idosos</div>
+            
+            <!-- Conexões entre os nós -->
+            <div class="connection" id="connection1"></div>
+            <div class="connection" id="connection2"></div>
+            <div class="connection" id="connection3"></div>
+            <div class="connection" id="connection4"></div>
+            <div class="connection" id="connection5"></div>
+            
+            <!-- Nós secundários -->
+            <div class="node node-1" id="node1">Como<br>Funciona</div>
+            <div class="node node-2" id="node2">Equipes<br>Multiprofissionais</div>
+            <div class="node node-3" id="node3">Acesso ao<br>Programa</div>
+            <div class="node node-4" id="node4">Benefícios</div>
+            <div class="node node-5" id="node5">Critérios de<br>Elegibilidade</div>
+            
+            <!-- Conteúdo dos nós -->
+            <div class="node-content" id="content1">
+                <h3>Como Funciona o Programa</h3>
+                <p>O Programa Melhor em Casa oferece cuidados de saúde no domicílio do paciente, através de:</p>
+                <ul>
+                    <li>Atenção Domiciliar (AD) personalizada</li>
+                    <li>Visitas regulares de profissionais de saúde</li>
+                    <li>Acompanhamento contínuo do tratamento</li>
+                    <li>Orientação aos familiares sobre cuidados</li>
+                    <li>Fornecimento de equipamentos necessários</li>
+                </ul>
+                <button class="close-btn">&times;</button>
+            </div>
+            
+            <div class="node-content" id="content2">
+                <h3>Equipes Multiprofissionais</h3>
+                <p>As equipes são compostas por profissionais qualificados:</p>
+                <ul>
+                    <li><strong>EMAD</strong> (Equipe Multiprofissional de Atenção Domiciliar): médicos, enfermeiros e técnicos de enfermagem</li>
+                    <li><strong>EMAP</strong> (Equipe Multiprofissional de Apoio): fisioterapeutas, nutricionistas, psicólogos, fonoaudiólogos, assistentes sociais e outros</li>
+                    <li>Profissionais especializados em geriatria</li>
+                </ul>
+                <button class="close-btn">&times;</button>
+            </div>
+            
+            <div class="node-content" id="content3">
+                <h3>Acesso ao Programa</h3>
+                <p>O acesso ao Melhor em Casa pode ser feito através de:</p>
+                <ul>
+                    <li>Encaminhamento por profissionais de hospitais</li>
+                    <li>Unidades de Pronto Atendimento (UPAs)</li>
+                    <li>Unidades Básicas de Saúde (postos de saúde)</li>
+                    <li>A adesão ao programa é voluntária e solicitada pelas secretarias municipais ou estaduais</li>
+                    <li>O programa é custeado com recursos da União, estados e municípios</li>
+                </ul>
+                <button class="close-btn">&times;</button>
+            </div>
+            
+            <div class="node-content" id="content4">
+                <h3>Benefícios do Programa</h3>
+                <p>O Programa Melhor em Casa traz diversos benefícios:</p>
+                <ul>
+                    <li>Evita hospitalizações desnecessárias</li>
+                    <li>Promove o conforto do ambiente familiar</li>
+                    <li>Melhora a qualidade de vida dos idosos</li>
+                    <li>Acelera a recuperação em ambiente conhecido</li>
+                    <li>Reduz custos com internações hospitalares</li>
+                    <li>Diminui riscos de infecções hospitalares</li>
+                    <li>Fortalece vínculos familiares durante o tratamento</li>
+                </ul>
+                <button class="close-btn">&times;</button>
+            </div>
+            
+            <div class="node-content" id="content5">
+                <h3>Critérios de Elegibilidade</h3>
+                <p>O programa atende pessoas que:</p>
+                <ul>
+                    <li>Possuem doenças crônicas ou estão em fase terminal</li>
+                    <li>Necessitam de cuidados contínuos</li>
+                    <li>Possuem dificuldade de locomoção</li>
+                    <li>Têm histórico de internações frequentes</li>
+                    <li>Receberam alta hospitalar, mas ainda precisam de acompanhamento</li>
+                    <li>Maioria dos pacientes são idosos, mas o programa atende todas as faixas etárias</li>
+                </ul>
+                <button class="close-btn">&times;</button>
+            </div>
+        </div>
+        
+        <div class="overlay" id="overlay"></div>
+        
+        <div class="controls">
+            <button class="control-btn" id="resetBtn">Reiniciar</button>
+            <button class="control-btn" id="expandBtn">Expandir Todos</button>
+            <button class="control-btn" id="teamBtn">Equipe</button>
+        </div>
+        
+        <div class="team-info" id="teamInfo">
+            <h3>Equipe de Desenvolvimento</h3>
+            <ul>
+                <li>Débora Lima Correia de Melo</li>
+                <li>Jonas Gabriel da Silva Lima</li>
+                <li>Maria Luiza Da Silva Pacheco</li>
+                <li>Itauana Mishaely de Araujo Pereira</li>
+            </ul>
+            <button class="close-btn" id="closeTeamBtn">&times;</button>
+        </div>
+        
+        <div class="instructions" id="instructions">
+            Clique no círculo central para expandir o mapa mental. Depois, clique em cada tópico para ver os detalhes.
+        </div>
+        
+        <div class="branding">By.BlancMind</div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+    // Elementos
+    const centerNode = document.getElementById('center');
+    const nodes = document.querySelectorAll('.node');
+    const connections = document.querySelectorAll('.connection');
+    const contents = document.querySelectorAll('.node-content');
+    const closeButtons = document.querySelectorAll('.close-btn');
+    const resetBtn = document.getElementById('resetBtn');
+    const expandBtn = document.getElementById('expandBtn');
+    const teamBtn = document.getElementById('teamBtn');
+    const teamInfo = document.getElementById('teamInfo');
+    const closeTeamBtn = document.getElementById('closeTeamBtn');
+    const overlay = document.getElementById('overlay');
+    const instructions = document.getElementById('instructions');
+    
+    // Configuração inicial
+    let expanded = false;
+    let activeTopic = null;
+    let activeNode = null;
+    
+    // Ocultar instruções após 5 segundos
+    setTimeout(() => {
+        instructions.style.opacity = '0';
+        setTimeout(() => {
+            instructions.style.display = 'none';
+        }, 500);
+    }, 5000);
+    
+    // Posicionamento dos nós e conexões
+    function positionNodes(expanded) {
+        const centerRect = centerNode.getBoundingClientRect();
+        const centerX = centerRect.left + centerRect.width / 2;
+        const centerY = centerRect.top + centerRect.height / 2;
+        
+        const radius = window.innerWidth < 768 ? 
+                    Math.min(window.innerWidth, window.innerHeight) * 0.28 : 
+                    Math.min(window.innerWidth, window.innerHeight) * 0.32;
+        
+        const angleStep = (2 * Math.PI) / nodes.length;
+        
+        nodes.forEach((node, index) => {
+            const angle = index * angleStep - Math.PI / 2; // Começa do topo
+            const x = centerX + radius * Math.cos(angle) - node.offsetWidth / 2;
+            const y = centerY + radius * Math.sin(angle) - node.offsetHeight / 2;
+            
+            node.style.left = `${x}px`;
+            node.style.top = `${y}px`;
+            
+            // Posicionar conexões
+            const connection = connections[index];
+            const nodeCenter = {
+                x: x + node.offsetWidth / 2,
+                y: y + node.offsetHeight / 2
+            };
+            
+            const centerPoint = {
+                x: centerX,
+                y: centerY
+            };
+            
+            // Ajuste para começar e terminar nos bordos dos círculos, não nos centros
+            const dx = nodeCenter.x - centerPoint.x;
+            const dy = nodeCenter.y - centerPoint.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            // Raios dos círculos
+            const centerRadius = centerNode.offsetWidth / 2;
+            const nodeRadius = node.offsetWidth / 2;
+            
+            // Calculando pontos de início e fim ajustados
+            const ratio = centerRadius / distance;
+            const startX = centerPoint.x + dx * ratio;
+            const startY = centerPoint.y + dy * ratio;
+            
+            const endRatio = 1 - (nodeRadius / distance);
+            const endX = centerPoint.x + dx * endRatio;
+            const endY = centerPoint.y + dy * endRatio;
+            
+            // Distância ajustada
+            const adjustedDistance = distance - centerRadius - nodeRadius;
+            
+            const angle2 = Math.atan2(dy, dx) * 180 / Math.PI;
+            
+            connection.style.width = `${adjustedDistance}px`;
+            connection.style.left = `${startX}px`;
+            connection.style.top = `${startY}px`;
+            connection.style.transform = `rotate(${angle2}deg)`;
+            
+            // Mostrar ou esconder os nós com delay crescente para efeito visual
+            if (expanded) {
+                setTimeout(() => {
+                    node.style.opacity = '1';
+                }, index * 150);
+                
+                setTimeout(() => {
+                    connection.style.opacity = '1';
+                }, index * 100);
+            } else {
+                // Ordem inversa ao fechar
+                setTimeout(() => {
+                    node.style.opacity = '0';
+                }, (nodes.length - index - 1) * 80);
+                
+                setTimeout(() => {
+                    connection.style.opacity = '0';
+                }, (nodes.length - index - 1) * 60);
+            }
+        });
+    }
+    
+    // Função para expandir/retrair o mapa
+    function toggleExpand() {
+        expanded = !expanded;
+        positionNodes(expanded);
+        
+        // Não fechamos mais o conteúdo ao expandir/retrair
+        // Somente fechamos se estiver retraindo e não houver nó ativo
+        if (!expanded && activeNode === null) {
+            hideAllContent();
+        }
+        
+        // Atualiza status do botão expandir
+        expandBtn.textContent = expanded ? "Recolher Todos" : "Expandir Todos";
+    }
+    
+    // Mostrar conteúdo do nó - MODIFICADO para não fechar tudo primeiro
+    function showContent(index) {
+        // Esconde qualquer conteúdo ativo anterior, sem fechar tudo
+        if (activeTopic !== null) {
+            const previousContent = contents[activeTopic];
+            previousContent.classList.remove('active');
+            setTimeout(() => {
+                previousContent.style.display = 'none';
+            }, 400);
+        }
+        
+        // Remove destaque do nó ativo anterior
+        if (activeNode) {
+            activeNode.classList.remove('active');
+        }
+        
+        activeTopic = index;
+        activeNode = nodes[index];
+        activeNode.classList.add('active');
+        
+        const content = contents[index];
+        
+        // Mostra overlay
+        overlay.style.display = 'block';
+        setTimeout(() => {
+            overlay.style.opacity = '1';
+        }, 10);
+        
+        // Centralizar o conteúdo na tela
+        content.style.display = 'block';
+        
+        // Animação de entrada com delay suficiente para o overlay aparecer primeiro
+        setTimeout(() => {
+            content.classList.add('active');
+        }, 100);
+    }
+    
+    // Esconder todo o conteúdo - usado apenas quando explicitamente solicitado
+    function hideAllContent() {
+        contents.forEach(content => {
+            content.classList.remove('active');
+            
+            // Usar setTimeout para permitir que a animação ocorra
+            setTimeout(() => {
+                content.style.display = 'none';
+            }, 400);
+        });
+        
+        // Esconde overlay com animação
+        overlay.style.opacity = '0';
+        setTimeout(() => {
+            overlay.style.display = 'none';
+        }, 300);
+        
+        // Remove destaque do nó ativo
+        if (activeNode) {
+            activeNode.classList.remove('active');
+            activeNode = null;
+        }
+        
+        activeTopic = null;
+    }
+    
+    // Esconder apenas o conteúdo específico - usado pelo botão X
+    function hideSpecificContent(contentElement) {
+        contentElement.classList.remove('active');
+        setTimeout(() => {
+            contentElement.style.display = 'none';
+        }, 400);
+        
+        // Esconde overlay com animação
+        overlay.style.opacity = '0';
+        setTimeout(() => {
+            overlay.style.display = 'none';
+        }, 300);
+        
+        // Remove destaque do nó ativo
+        if (activeNode) {
+            activeNode.classList.remove('active');
+            activeNode = null;
+        }
+        
+        activeTopic = null;
+    }
+    
+    // Mostrar informações da equipe
+    function toggleTeamInfo() {
+        if (teamInfo.style.display === 'block') {
+            hideTeamInfo();
+        } else {
+            showTeamInfo();
+        }
+    }
+    
+    function showTeamInfo() {
+        // Não fecha mais o conteúdo ativo quando abre o teamInfo
+        
+        // Mostra overlay
+        overlay.style.display = 'block';
+        setTimeout(() => {
+            overlay.style.opacity = '1';
+        }, 10);
+        
+        // Exibe info da equipe
+        teamInfo.style.display = 'block';
+        setTimeout(() => {
+            teamInfo.classList.add('active');
+        }, 100);
+    }
+    
+    function hideTeamInfo() {
+        teamInfo.classList.remove('active');
+        
+        // Esconde overlay com animação somente se não houver cards ativos
+        if (activeTopic === null) {
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 300);
+        }
+        
+        setTimeout(() => {
+            teamInfo.style.display = 'none';
+        }, 300);
+    }
+    
+    // Criar partículas para o fundo
+    function createParticles() {
+        const particlesContainer = document.getElementById('particles');
+        const particleCount = window.innerWidth < 768 ? 30 : 50;
+        
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            
+            // Tamanho aleatório
+            const size = Math.random() * 5 + 2;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            
+            // Cor aleatória em tom pastel
+            const hue = Math.floor(Math.random() * 360);
+            particle.style.backgroundColor = `hsla(${hue}, 70%, 70%, 0.6)`;
+            
+            // Posição aleatória
+            particle.style.left = `${Math.random() * 100}%`;
+            particle.style.top = `${Math.random() * 100}%`;
+            
+            // Velocidade de animação aleatória
+            const animDuration = Math.random() * 30 + 15;
+            particle.style.animationDuration = `${animDuration}s`;
+            
+            // Atraso aleatório
+            particle.style.animationDelay = `${Math.random() * 10}s`;
+            
+            particlesContainer.appendChild(particle);
+        }
+    }
+    
+    // Function para reiniciar o mapa
+    function resetMap() {
+        hideAllContent(); // Aqui queremos fechar tudo
+        hideTeamInfo();
+        
+        if (expanded) {
+            expanded = false;
+            positionNodes(expanded);
+            
+            // Atualiza status do botão expandir
+            expandBtn.textContent = "Expandir Todos";
+        }
+        
+        if (activeNode) {
+            activeNode.classList.remove('active');
+            activeNode = null;
+        }
+    }
+    
+    // Event Listeners
+    centerNode.addEventListener('click', toggleExpand);
+    
+    nodes.forEach((node, index) => {
+        node.addEventListener('click', () => {
+            showContent(index);
+        });
+    });
+    
+    closeButtons.forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // Encontrar o elemento pai mais próximo com a classe node-content
+            const contentElement = btn.closest('.node-content');
+            if (contentElement) {
+                hideSpecificContent(contentElement);
+            } else if (btn === closeTeamBtn) {
+                hideTeamInfo();
+            }
+        });
+    });
+    
+    // Modificar o comportamento do overlay para não fechar os cards
+    overlay.addEventListener('click', (e) => {
+        // Verificar se o clique foi diretamente no overlay e não em seu conteúdo
+        if (e.target === overlay) {
+            // Não fechamos mais os cards ao clicar no overlay
+            // Somente fechamos o teamInfo se estiver visível
+            if (teamInfo.style.display === 'block') {
+                hideTeamInfo();
+            }
+            hideAllContent();
+        }
+    });
+    
+    resetBtn.addEventListener('click', resetMap);
+    
+    expandBtn.addEventListener('click', () => {
+        toggleExpand();
+    });
+    
+    teamBtn.addEventListener('click', toggleTeamInfo);
+    closeTeamBtn.addEventListener('click', hideTeamInfo);
+    
+    // Tecla ESC para fechar modais - mantém este comportamento se desejar
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            hideAllContent();
+            hideTeamInfo();
+        }
+    });
+    
+    // Responsividade
+    window.addEventListener('resize', () => {
+        positionNodes(expanded);
+    });
+    
+    // Inicialização
+    createParticles();
+    positionNodes(false);
+    
+    // Animação
+    // Animação inicial para introduzir o mapa
+    setTimeout(() => {
+        centerNode.classList.add('pulse');
+    }, 500);
+    
+    // Pequeno destaque para introduzir os controles
+    setTimeout(() => {
+        const btns = document.querySelectorAll('.control-btn');
+        btns.forEach((btn, i) => {
+            setTimeout(() => {
+                btn.style.transform = 'translateY(-5px)';
+                setTimeout(() => {
+                    btn.style.transform = 'translateY(0)';
+                }, 300);
+            }, i * 200);
+        });
+    }, 1500);
+});
+    </script>
+</body>
+</html>
